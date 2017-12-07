@@ -27,10 +27,33 @@ object KafkaOffsetManager {
     val (offsetsRangesStrOpt, _) = ZkUtils.readDataMaybeNull(zkClient, zkOffsetPath)//从zk上读取偏移量
     offsetsRangesStrOpt match {
       case Some(offsetsRangesStr) =>
-        val offsets = offsetsRangesStr.split(",")//按逗号split成数组
+        //这个topic在zk里面最新的分区数量
+        val  lastest_partitions= ZkUtils.getPartitionsForTopics(zkClient,Seq(topic)).get(topic).get
+        var offsets = offsetsRangesStr.split(",")//按逗号split成数组
           .map(s => s.split(":"))//按冒号拆分每个分区和偏移量
           .map { case Array(partitionStr, offsetStr) => (TopicAndPartition(topic, partitionStr.toInt) -> offsetStr.toLong) }//加工成最终的格式
           .toMap//返回一个Map
+
+        //说明有分区扩展了
+        if(offsets.size<lastest_partitions.size){
+          //得到旧的所有分区序号
+          val old_partitions=offsets.keys.map(p=>p.partition).toArray
+          //通过做差集得出来多的分区数量数组
+          val add_partitions=lastest_partitions.diff(old_partitions)
+          if(add_partitions.size>0){
+            log.warn("发现kafka新增分区："+add_partitions.mkString(","))
+            add_partitions.foreach(partitionId=>{
+              offsets += (TopicAndPartition(topic,partitionId)->0)
+              log.warn("新增分区id："+partitionId+"添加完毕....")
+            })
+
+          }
+
+        }else{
+          log.warn("没有发现新增的kafka分区："+lastest_partitions.mkString(","))
+        }
+
+
         Some(offsets)//将Map返回
       case None =>
         None//如果是null，就返回None
