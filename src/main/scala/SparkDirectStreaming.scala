@@ -1,12 +1,18 @@
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+
 import kafka.api.OffsetRequest
 import kafka.message.MessageAndMetadata
 import kafka.serializer.StringDecoder
 import kafka.utils.ZKStringSerializer
 import org.I0Itec.zkclient.ZkClient
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.Path
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.dstream.InputDStream
 import org.apache.spark.streaming.kafka.KafkaUtils
 import org.apache.spark.streaming.{Seconds, StreamingContext}
+import org.spark_project.jetty.server.{Request, Server}
+import org.spark_project.jetty.server.handler.{AbstractHandler, ContextHandler}
 
 /**
   * Created by QinDongLiang on 2017/11/28.
@@ -84,6 +90,71 @@ object SparkDirectStreaming {
   }
 
 
+  /****
+    * 负责启动守护的jetty服务
+    * @param port 对外暴露的端口号
+    * @param ssc Stream上下文
+    */
+  def daemonHttpServer(port:Int,ssc: StreamingContext)={
+    val server=new Server(port)
+    val context = new ContextHandler();
+    context.setContextPath( "/close" );
+    context.setHandler( new CloseStreamHandler(ssc) )
+    server.setHandler(context)
+    server.start()
+  }
+
+  /*** 负责接受http请求来优雅的关闭流
+    * @param ssc  Stream上下文
+    */
+  class CloseStreamHandler(ssc:StreamingContext) extends AbstractHandler {
+    override def handle(s: String, baseRequest: Request, req: HttpServletRequest, response: HttpServletResponse): Unit ={
+      log.warn("开始关闭......")
+      ssc.stop(true,true)//优雅的关闭
+      response.setContentType("text/html; charset=utf-8");
+      response.setStatus(HttpServletResponse.SC_OK);
+      val out = response.getWriter();
+      out.println("close success");
+      baseRequest.setHandled(true);
+      log.warn("关闭成功.....")
+    }
+  }
+
+
+  /***
+    * 通过一个消息文件来定时触发是否需要关闭流程序
+    * @param ssc StreamingContext
+    */
+  def stopByMarkFile(ssc:StreamingContext):Unit= {
+    val intervalMills = 10 * 1000 // 每隔10秒扫描一次消息是否存在
+    var isStop = false
+    val hdfs_file_path = "/spark/streaming/stop" //判断消息文件是否存在，如果存在就
+    while (!isStop) {
+      isStop = ssc.awaitTerminationOrTimeout(intervalMills)
+      if (!isStop && isExistsMarkFile(hdfs_file_path)) {
+        log.warn("2秒后开始关闭sparstreaming程序.....")
+        Thread.sleep(2000)
+        ssc.stop(true, true)
+      }
+
+    }
+  }
+
+    /***
+      * 判断是否存在mark file
+      * @param hdfs_file_path  mark文件的路径
+      * @return
+      */
+    def isExistsMarkFile(hdfs_file_path:String):Boolean={
+      val conf = new Configuration()
+      val path=new Path(hdfs_file_path)
+      val fs =path.getFileSystem(conf);
+      fs.exists(path)
+    }
+
+
+
+
 
   def main(args: Array[String]): Unit = {
 
@@ -91,6 +162,14 @@ object SparkDirectStreaming {
     val ssc=createStreamingContext()
     //开始执行
     ssc.start()
+
+    //启动接受停止请求的守护进程
+    daemonHttpServer(5555,ssc)  //方式一通过Http方式优雅的关闭策略
+
+
+    //stopByMarkFile(ssc)       //方式二通过扫描HDFS文件来优雅的关闭
+
+
     //等待任务终止
     ssc.awaitTermination()
 
