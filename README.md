@@ -6,7 +6,7 @@
 
 （1）[spark streaming自带的checkpoint容错使用](http://qindongliang.iteye.com/blog/2350846) 
 
-（2）[spark streaming自带的checkpoint的弊端）](http://qindongliang.iteye.com/blog/2356634) 
+（2）[spark streaming自带的checkpoint的弊端](http://qindongliang.iteye.com/blog/2356634) 
 
 （3）[如何管理spark streaming消费Kafka的偏移量（一）](http://qindongliang.iteye.com/blog/2399736) 
 
