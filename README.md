@@ -4,7 +4,7 @@
 
 下面是使用过程中记录的一些心得和博客，感兴趣的朋友可以了解下：
 
-（1）[spark streaming自带的checkpoint容错使用）](http://qindongliang.iteye.com/blog/2350846) 
+（1）[spark streaming自带的checkpoint容错使用](http://qindongliang.iteye.com/blog/2350846) 
 
 （2）[spark streaming自带的checkpoint的弊端）](http://qindongliang.iteye.com/blog/2356634) 
 
