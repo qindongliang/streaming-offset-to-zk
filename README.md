@@ -8,11 +8,11 @@
 
 （2）[spark streaming自带的checkpoint的弊端）](http://qindongliang.iteye.com/blog/2356634) 
 
-（3）[如何管理Spark Streaming消费Kafka的偏移量（一）](http://qindongliang.iteye.com/blog/2399736) 
+（3）[如何管理spark streaming消费Kafka的偏移量（一）](http://qindongliang.iteye.com/blog/2399736) 
 
-（4）[如何管理Spark Streaming消费Kafka的偏移量（二）](http://qindongliang.iteye.com/blog/2400003) 
+（4）[如何管理spark streaming消费Kafka的偏移量（二）](http://qindongliang.iteye.com/blog/2400003) 
 
-（5）[如何管理Spark Streaming消费Kafka的偏移量（三）](http://qindongliang.iteye.com/blog/2401194) 
+（5）[如何管理spark streaming消费Kafka的偏移量（三）](http://qindongliang.iteye.com/blog/2401194) 
 
 （6）[spark streaming程序如何优雅的停止服务（一）](http://qindongliang.iteye.com/blog/2364713) 
 
