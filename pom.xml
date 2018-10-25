@@ -22,7 +22,7 @@
         <config.version>1.2.1</config.version>
         <guava.version>18.0</guava.version>
         <joad-time.version>2.9.4</joad-time.version>
-        <fast.json>1.2.15</fast.json>
+        <fast.json>1.2.31</fast.json>
         <scala.logging.version>3.1.0</scala.logging.version>
         <logback.version>1.1.7</logback.version>
         <json-simple.version>1.1.1</json-simple.version>
